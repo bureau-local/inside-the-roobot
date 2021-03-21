@@ -1,16 +1,14 @@
 import json
 import csv
 
-# Lookup infered from deliveroo incentives webpage, the london zone map...
-# and from partnering riders via the rider app
+# Lookup to match the deliveroo working zones to cities
 with open("data/in/zone-city-lookup.csv") as infile:
 	reader = csv.DictReader(infile)
 	fields = reader.fieldnames
 	zones_lookup = {row["Zone"]: row["City"] for row in reader}
 	cities = {zones_lookup[zone] for zone in zones_lookup}
 
-# Self made lookup from common areas inputed by riders...
-# but not matched by the zone city lookup
+# Lookup to match the free text entries to cities
 with open("data/in/area-city-lookup.csv") as infile:
 	reader = csv.DictReader(infile)
 	fields = reader.fieldnames
