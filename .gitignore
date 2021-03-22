@@ -3,4 +3,5 @@
 data/in/iwgb/**
 data/tmp/**
 data/out/**
+rider-dedup/*.json
 rider-dedup/duplicated-pairs.csv

@@ -28,7 +28,9 @@ duplicated_pairs = dict()
 # Store the rider id, with a long string made of the invoice data as the key
 seen = dict()
 # filename = "data_with_dupes.json"
-filename = "iwgb-data-copy-for-dedup-20210318.json"
+# filename = "iwgb-data-copy-for-dedup-20210318.json"
+# filename = "iwgb-data-copy-for-dedup-20210322.json"
+filename = "iwgb-data-second-copy-for-dedup-20210322.json"
 with open(filename, "r") as infile:
 	iwgb_data = json.load(infile)
 
