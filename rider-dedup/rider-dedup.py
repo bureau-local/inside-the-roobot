@@ -1,17 +1,16 @@
 import json
 import csv
 
-# write a long string made of the invoice data
-# to find duplicated invoices with
+# write a long string made of the invoice data to spot duplicated invoices
 # @param invoice: dict
 def write_long_string(invoice):
 	long_string = invoice["zone"] + invoice["start"] + invoice["end"]
 	for shift in invoice["shifts"]:
-		start = shift["start"]
-		end = shift["end"]
-		hours = str(shift["hours"])
-		orders = str(shift["orders"])
-		pay = str(shift["pay"])
+		start = shift["Start"]
+		end = shift["End"]
+		hours = str(shift["Hours"])
+		orders = str(shift["Orders"])
+		pay = str(shift["Pay"])
 		long_string += start + end + hours + orders + pay
 	return long_string
 
@@ -21,52 +20,42 @@ def write_long_string(invoice):
 def get_duplicate_data(original_id, duplicate_id):
 	return {"Original Id": original_id, "Duplicate Id": duplicate_id}
 
-# dict to store the duplicated invoices pairs of rider ids
-# we use the duplicate id as the key, to be able to easily check
-# if what we believe to be the original id is in fact the duplicate 
-# of a pair ids we've already match, in which case the original id 
-# of the new pair must be corrected to that of the pair we've already matched
+# Store the duplicated invoices pair of rider ids in a dict
+# with the duplicate id as the key, so we can check if the orgininal id
+# of a new pair, is already stored as the duplicate id of another pair
 duplicated_pairs = dict()
 
-# for each invoice store a long string made of the invoice data as the key
-# and the rider id as the val
+# Store the rider id, with a long string made of the invoice data as the key
 seen = dict()
-with open("iwgb-data-copy-for-dedup-20210318.json", "r") as infile:
+# filename = "data_with_dupes.json"
+filename = "iwgb-data-copy-for-dedup-20210318.json"
+with open(filename, "r") as infile:
 	iwgb_data = json.load(infile)
 
 	for invoice in iwgb_data:
-		long_sting = write_long_string(invoice)
+		long_string = write_long_string(invoice)
 
-		# if we've already seen a duplicate of the invoice
-		# we add the pair of rider ids to the duplicated pairs dict
-		# otherwise we add the long string to the seen dict
+		# store the pair of rider ids if we've already seen
+		# a duplicate of the invoice or store the long string if we haven't
 		if long_string in seen:
-			# invoices are returned by the API
-			# in the order they were submitted
-			# we initially set the first rider we have seen as the original
+			# we initially set the first rider id we have seen as the original
 			# and the one from the duplicated invoice as the duplicate
 			original_id = seen[long_string]
 			duplicate_id = invoice["riderId"]
 			# if they are the same id we can ignore the rest of the process
 			if duplicate_id != original_id:
-				# we go through stored pairs of duplicated invoices rider ids
-				# and check if the id we think to be the original one is
-				# the duplicate of a pair we've already matched
-				# in which case the "original id" of the new pair
-				# must be corrected to that of the pair we've already matched
+				# Check if the "original id" has already been stored as
+				# the duplicate of another pair in which case it is
+				# re-assigned to match the original id of that pair
 				if original_id not in duplicated_pairs:
-					# if the duplicate id is a longer id
-					# taken from the invoice pdf file name
-					# then we prioritise that as the original id
+					# check if the duplicate id is the actual (longer)
+					# deliveroo id and prioritise it as the original id
 					if len(duplicate_id) > len(original_id):						
 						duplicate_data = get_duplicate_data(duplicate_id, original_id)
 						duplicated_pairs[duplicate_id] = duplicate_data
-						# because we reverse a duplicate and an original id to
-						# prioritise the id from file name we need to
-						# go back and check if the orginal id
-						# was also the original id of another pair
-						# and switch the original id of that pair
-						# to the longer id as well
+						# check if the original id had already been stored as
+						# the original id of another pair, and re-assign the
+						# original id of that pair to the actual deliveroo id
 						for rider_id in duplicated_pairs:
 							if original_id == duplicated_pairs[rider_id]["Original Id"]:
 								duplicated_pairs[rider_id]["Original Id"] = duplicate_id
@@ -74,8 +63,7 @@ with open("iwgb-data-copy-for-dedup-20210318.json", "r") as infile:
 						duplicate_data = get_duplicate_data(original_id, duplicate_id)
 						duplicated_pairs[duplicate_id] = duplicate_data
 				else:
-					# change the original id
-					# to that of the pair we've already match
+					# update the original id before storing the pair
 					original_id = duplicated_pairs[original_id]["Original Id"]
 					duplicate_data = get_duplicate_data(original_id, duplicate_id)
 					duplicated_pairs[duplicate_id] = duplicate_data
