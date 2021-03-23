@@ -1,26 +1,10 @@
+from utils import write_csv_outfile, is_pay_below_thres, yearly_minimum_wage
 import statistics
 import datetime
 import json
-import csv
 
 # TODO
 # 1- make script shorter... perhaps by spliting in two... or three, first a json with week data then the weekly data analysis than the parsing
-
-# Minimum and living wage by year
-yearly_minimum_wage = {
-	"2020-21": 8.72,
-	"2019-20": 8.21,
-	"2018-19": 7.83,
-	"2017-18": 7.50,
-	"2016-17": 7.20
-}
-
-# Check if pay is below threshold
-def is_pay_below_thres(val, threshold):
-	if val < threshold:
-		return True
-	else:
-		return False
 
 date_format = "%Y-%m-%dT%H:%M:%S.%fZ"
 rider_years_data = dict()
@@ -145,11 +129,7 @@ for rider_year in rider_years_data:
 	del rider_data["weeks"]
 	rider_years_data[rider_year] = rider_data
 
-# Write the cities data to output file
+# Remove dictionary keys and write the riders data to output file
 print("[*] Writing the riders data to output file")
 rider_years_data = [val for key, val in rider_years_data.items()]
-outfields = [datafield for datafield in rider_years_data[0]]
-with open("data/out/riders-data.csv", "w") as outfile:
-	writer = csv.DictWriter(outfile, fieldnames=outfields)
-	writer.writeheader()
-	writer.writerows(rider_years_data)
+write_csv_outfile(rider_years_data, "riders-data")

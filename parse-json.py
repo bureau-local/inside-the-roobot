@@ -1,5 +1,5 @@
+from utils import write_csv_outfile
 import json
-import csv
 
 def init_data(data_dict, invoice):
 	data_dict["Invoice id"] = invoice["id"]
@@ -56,18 +56,8 @@ with open("data/tmp/iwgb-data-4.json", "r") as infile:
 			shift_data.update(shift)
 			shifts.append(shift_data)
 
-# Write the invoice data to output file
-print("[*] Writing the invoices data to output file")
-outfields = [datafield for datafield in invoices[0]]
-with open("data/out/invoices.csv", "w") as outfile:
-	writer = csv.DictWriter(outfile, fieldnames=outfields)
-	writer.writeheader()
-	writer.writerows(invoices)
+# Write the invoice and shifts data to output file
+print("[*] Writing the invoices and shifts data to output file")
+write_csv_outfile(invoices, "invoices")
+write_csv_outfile(shifts, "shifts")
 
-# Write the shifts data to output file
-print("[*] Writing the shifts data to output file")
-outfields = [datafield for datafield in shifts[0]]
-with open("data/out/shifts.csv", "w") as outfile:
-	writer = csv.DictWriter(outfile, fieldnames=outfields)
-	writer.writeheader()
-	writer.writerows(shifts)

@@ -1,16 +1,21 @@
 import json
 import csv
 
-# Get the city and region corresponding to the geographic area
+# get the city and region corresponding to the geographic area
 # @params geo_data: dict
 def get_lookup(geo_data):
 	return {"city": geo_data["City"], "region": geo_data["Region"]}
 
-# @params geo_data: dict
-def get_city_lookup(geo_data):
-	city_lookup = {geo_data["city"]: geo_data["region"]}
-	print(city_lookup)
-	return geo_data["city"], geo_data["region"]
+# get manual corrections for special cases
+# @params row: dict
+def get_correction(row):
+	return {"area": row["Area"], "correction": row["Correction"]}
+
+# Lookup to match the deliveroo working zones to cities
+with open("data/in/corrections.csv") as infile:
+	reader = csv.DictReader(infile)
+	fields = reader.fieldnames
+	corrections = {row["Rider Id"]: get_correction(row) for row in reader}
 
 # Lookup to match the deliveroo working zones to cities
 with open("data/in/zone-lookup.csv") as infile:
@@ -33,7 +38,11 @@ with open("data/tmp/iwgb-data-1.json", "r") as infile:
 	iwgb_data = json.load(infile)
 
 	for invoice in iwgb_data:
-		zone = invoice["zone"]	
+		rider_id = invoice["riderId"]
+		zone = invoice["zone"]
+
+		if rider_id in corrections and zone == corrections[rider_id]["area"]:
+			zone = corrections[rider_id]["correction"]
 		
 		if zone.upper() in zones_lookup:
 			zone = zone.upper()
@@ -42,13 +51,14 @@ with open("data/tmp/iwgb-data-1.json", "r") as infile:
 		elif zone.title() in cities:
 			zone = zone.title()
 			city = zone.title()
-			regions = cities[zone]
+			region = cities[zone]
 		elif zone.title() in areas_lookup:
 			zone = zone.title()
 			city = areas_lookup[zone]["city"]
 			region = areas_lookup[zone]["region"]
 		else:
 			city = ""
+			region = ""
 
 		invoice["zone"] = zone
 		invoice["city"] = city

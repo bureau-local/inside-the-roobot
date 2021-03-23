@@ -1,15 +1,18 @@
+from utils import write_csv_outfile
 import json
-import csv
 
 # @params local_data: dict
 # @params area: string
+# @params area: region
 # @params city: string
 # @params zone: string
-def init_data(local_data, area, city, zone=""):
+def init_data(local_data, area, region, city="", zone=""):
 	local_data[area] = dict()
 	if zone != "":
 		local_data[area]["Zone"] = zone
-	local_data[area]["City"] = city
+	if city != "":
+		local_data[area]["City"] = city
+	local_data[area]["Region"] = region
 	local_data[area]["Riders"] = set()
 	local_data[area]["Invoices"] = 0
 	local_data[area]["Shifts"] = 0
@@ -52,48 +55,44 @@ def analyse_data(local_data):
 
 zones_data = dict()
 cities_data = dict()
+regions_data = dict()
 # Loop though invoices to collect data by area and city
 with open("data/tmp/iwgb-data-4.json", "r") as infile:
 	iwgb_data = json.load(infile)
-	for i, invoice in enumerate(iwgb_data):
+	current_fy = [x for x in iwgb_data if x["Financial year"] == "2020-21"]
+	for invoice in current_fy:
 		zone = invoice["zone"]
 		city = invoice["city"]
+		region = invoice["city"]
 
 		if zone not in zones_data:
-			init_data(zones_data, zone, city, zone)
-
+			init_data(zones_data, zone, region, city, zone)
 		increment_data(zones_data, zone, invoice)
-
 		# Skip if no city could be matched to the area provided by the rider
-		if city == "":
-			continue
+		if city != "":
+			if city not in cities_data:
+				init_data(cities_data, city, region, city)
+			increment_data(cities_data, city, invoice)
+		# Skip if no city could be matched to the area provided by the rider
+		if region != "":
+			if region not in regions_data:
+				init_data(regions_data, region, region)
+			increment_data(regions_data, region, invoice)
 
-		if city not in cities_data:
-			init_data(cities_data, city, city)
-
-		increment_data(cities_data, city, invoice)
-
-# Analyse the data collected by zone and city
+# Analyse the data collected for each zone and city
 for zone in zones_data:
 	analyse_data(zones_data[zone])
-
 for city in cities_data:
 	analyse_data(cities_data[city])
+for region in regions_data:
+	analyse_data(regions_data[region])
 
-# Write the zones data to output file
-print("[*] Writing the zones data to output file")
+# Remove the dictionaries keys and write the data to output files
+print("[*] Writing the geo data to output files")
 zones_data = [val for key, val in zones_data.items()]
-outfields = [datafield for datafield in zones_data[0]]
-with open("data/out/zones-data.csv", "w") as outfile:
-	writer = csv.DictWriter(outfile, fieldnames=outfields)
-	writer.writeheader()
-	writer.writerows(zones_data)
-
-# Write the cities data to output file
-print("[*] Writing the cities data to output file")
 cities_data = [val for key, val in cities_data.items()]
-outfields = [datafield for datafield in cities_data[0]]
-with open("data/out/cities-data.csv", "w") as outfile:
-	writer = csv.DictWriter(outfile, fieldnames=outfields)
-	writer.writeheader()
-	writer.writerows(cities_data)
+regions_data = [val for key, val in regions_data.items()]
+write_csv_outfile(zones_data, "zones-data")
+write_csv_outfile(cities_data, "cities-data")
+write_csv_outfile(regions_data, "regions-data")
+

@@ -1,30 +1,11 @@
+from utils import is_pay_below_thres, yearly_minimum_wage
 import json
-
-# Minimum and living wage by year
-yearly_minimum_wage = {
-	"2020-21": 8.72,
-	"2019-20": 8.21,
-	"2018-19": 7.83,
-	"2017-18": 7.50,
-	"2016-17": 7.20
-}
-
-# Check if the val is below a certain treshreshold
-# @params val: float
-# @params threshold: float
-def is_pay_below_thres(val, threshold):
-	if val < threshold:
-		return True
-	else:
-		return False
 
 # Analysis - Get Pay/h, Pay<min wage and Orders/h for each
 with open("data/tmp/iwgb-data-2.json", "r") as infile:
 	iwgb_data = json.load(infile)
 	# Go through each invoice
 	for i, invoice in enumerate(iwgb_data):
-		# if i > 100:
-			# break
 		city = invoice["city"]
 		shifts = invoice["shifts"]
 		# Go through each shift

@@ -1,7 +1,7 @@
+from utils import write_csv_outfile
 import statistics
 import datetime
 import json
-import csv
 
 # we are matching by invoice as we wouldn't be able to use the adjustment data otherwise
 # we match the financial year using the start date, as the financial year goes up every year
@@ -86,14 +86,7 @@ for year in yearly_data:
 	yearly_data[year]["shifts < ten (%)"] = shifts_below_ten_percentage
 	yearly_data[year]["shifts < min (%)"] = shifts_below_min_percentage
 
-
-# Remove the dictionary keys, store the values as a list
-# and write the yearly data to output file
+# Remove the dictionary keys and write the yearly data to output file
 print("[*] Writing the yearly data to output file")
 yearly_data = [val for key, val in yearly_data.items()]
-outfields = [datafield for datafield in yearly_data[0]]
-with open("data/out/yearly-breakdown.csv", "w") as outfile:
-	writer = csv.DictWriter(outfile, fieldnames=outfields)
-	writer.writeheader()
-	writer.writerows(yearly_data)
-
+write_csv_outfile(yearly_data, "yearly-breakdown")
