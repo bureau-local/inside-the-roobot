@@ -63,7 +63,7 @@ The basic pay only includes drop fees, with all adjustments excluded from the to
 
 #### WRITING THE OUTPUT FILES
 
-**Source:** `parse-json.py`, `parse-by-year.py`, `parse-json-by-riders.py`, `parse-json-by-area.py` 
+**Source:** `parse-json.py`, `parse-by-year.py`, `parse-json-by-riders.py`, `parse-by-area.py` 
 
 We use four different scripts to prepare a number of different output files to allow us to look at the data a number of different ways, either by looking directly at the shifts and invoices, at yearly breakdown, at each individual riders or at each city
 
