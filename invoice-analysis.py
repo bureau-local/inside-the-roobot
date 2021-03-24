@@ -1,13 +1,11 @@
-from utils import is_pay_below_thres, yearly_minimum_wage
+from utils import is_pay_below_thres, yearly_minimum_wage, get_financial_year
 import json
 
 # Analysis
 with open("data/tmp/iwgb-data-3.json", "r") as infile:
 	iwgb_data = json.load(infile)
 	# Go through each invoice
-	for i, invoice in enumerate(iwgb_data):
-		# if i > 100:
-			# break
+	for invoice in iwgb_data:
 		invoice_id = invoice["id"]
 		city = invoice["city"]
 		shifts = invoice["shifts"]
@@ -25,13 +23,9 @@ with open("data/tmp/iwgb-data-3.json", "r") as infile:
 		hours = sum([shift["Hours"] for shift in shifts])
 		orders = sum([shift["Orders"] for shift in shifts])
 
-		# Get begining year of financial year i.e. 2020 for 2020-21
+		# Get the financial year based on the invoice start date
 		start = invoice["start"]
-		year = int(start[:4])
-		month = int(start[5:7])
-		if month < 4:
-			year += -1
-		financial_year = str(year) + "-" + str((year + 1))[-2:]
+		financial_year = get_financial_year(start)
 
 		if hours != 0:
 			minimum_wage = yearly_minimum_wage[financial_year]

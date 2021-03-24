@@ -18,6 +18,15 @@ def is_pay_below_thres(val, threshold):
 	else:
 		return False
 
+# Get the financial year from the date
+# @params date: string
+def get_financial_year(date):
+	year = int(date[:4])
+	month = int(date[5:7])
+	if month < 4:
+		year += -1
+	return str(year) + "-" + str((year + 1))[-2:]
+
 # write data to csv file
 # @params output_data: list
 # @params filename: string

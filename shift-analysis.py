@@ -1,4 +1,4 @@
-from utils import is_pay_below_thres, yearly_minimum_wage
+from utils import is_pay_below_thres, yearly_minimum_wage, get_financial_year
 import json
 
 # Analysis - Get Pay/h, Pay<min wage and Orders/h for each
@@ -13,14 +13,9 @@ with open("data/tmp/iwgb-data-2.json", "r") as infile:
 			pay = shift["Pay"]
 			hours = shift["Hours"]
 			orders = shift["Orders"]
-			start = shift["Start"]
-
-			# Get begining year of financial year i.e. 2020 for 2020-21
-			year = int(start[:4])
-			month = int(start[5:7])
-			if month < 4:
-				year += -1
-			financial_year = str(year) + "-" + str((year + 1))[-2:]
+			# Get the financial year based on the shift start date
+			start = invoice["start"]
+			financial_year = get_financial_year(start)
 			
 			minimum_wage = yearly_minimum_wage[financial_year]
 			hourly_pay = pay / hours

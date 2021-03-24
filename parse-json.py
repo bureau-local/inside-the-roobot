@@ -6,6 +6,8 @@ def init_data(data_dict, invoice):
 	data_dict["Rider id"] = invoice["riderId"]
 	data_dict["Vehicle"] = invoice["vehicle"]
 	data_dict["Zone"] = invoice["zone"]
+	data_dict["City"] = invoice["city"]
+	data_dict["Region"] = invoice["region"]
 	return data_dict
 
 invoices = list()
@@ -16,7 +18,7 @@ with open("data/tmp/iwgb-data-4.json", "r") as infile:
 	for i, invoice in enumerate(iwgb_data):
 		# Parse the invoice data
 		invoice_data = init_data(dict(), invoice)
-		invoice_data["city"] = invoice["city"]
+		invoice_data["Financial year"] = invoice["Financial year"]
 		invoice_data["Start date"] = invoice["start"]
 		invoice_data["End date"] = invoice["end"]
 		invoice_data["Drop Fees"] = invoice["Drop Fees"]

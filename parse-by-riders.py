@@ -1,6 +1,6 @@
-from utils import write_csv_outfile, is_pay_below_thres, yearly_minimum_wage
 import statistics
 import datetime
+import utils
 import json
 
 # TODO
@@ -11,18 +11,11 @@ rider_years_data = dict()
 # Analysis
 with open("data/tmp/iwgb-data-4.json", "r") as infile:
 	iwgb_data = json.load(infile)
-	for i, invoice in enumerate(iwgb_data):
-		# if i > 10:
-			# break
+	for invoice in iwgb_data:
 		rider_id = invoice["riderId"]
-		start = invoice["start"]
-		
 		# Get the financial year based on the invoice start date
-		year = int(start[:4])
-		month = int(start[5:7])
-		if month < 4:
-			year += -1
-		financial_year = str(year) + "-" + str((year + 1))[-2:]
+		start = invoice["start"]
+		financial_year = utils.get_financial_year(start)
 
 		rider_year = rider_id + "_" + financial_year
 		if rider_year not in rider_years_data:
@@ -77,8 +70,8 @@ for rider_year in rider_years_data:
 	if hours != 0:
 		hourly_pay = pay / hours
 		hourly_basic_pay = basic_pay / hours
-		minimum_wage = yearly_minimum_wage[financial_year]
-		pay_below_min = is_pay_below_thres(hourly_pay, minimum_wage)
+		minimum_wage = utils.yearly_minimum_wage[financial_year]
+		pay_below_min = utils.is_pay_below_thres(hourly_pay, minimum_wage)
 		rider_data["hourly pay"] = round(hourly_pay, 2)
 		rider_data["hourly basic pay"] = round(hourly_basic_pay, 2)
 		rider_data["< min"] = pay_below_min
@@ -132,4 +125,4 @@ for rider_year in rider_years_data:
 # Remove dictionary keys and write the riders data to output file
 print("[*] Writing the riders data to output file")
 rider_years_data = [val for key, val in rider_years_data.items()]
-write_csv_outfile(rider_years_data, "riders-data")
+utils.write_csv_outfile(rider_years_data, "riders-data")
