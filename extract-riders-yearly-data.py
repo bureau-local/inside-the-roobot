@@ -31,6 +31,7 @@ with open("data/tmp/iwgb-data-4.json", "r") as infile:
 			riders_yearly_data[rider_year]["vehicle"] = invoice["vehicle"]
 			riders_yearly_data[rider_year]["zone"] = invoice["zone"]
 			riders_yearly_data[rider_year]["city"] = invoice["city"]
+			riders_yearly_data[rider_year]["region"] = invoice["region"]
 			riders_yearly_data[rider_year]["financial year"] = financial_year
 			riders_yearly_data[rider_year]["invoices"] = 0
 			riders_yearly_data[rider_year]["shifts"] = 0

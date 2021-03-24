@@ -1,6 +1,12 @@
 from utils import write_csv_outfile
 import json
 
+def get_data_for_area(area_type, area):
+	return [x for x in riders_202021_data if x[area_type] == area]
+
+def get_data_for_financial_year(riders_yearly_data):
+	return [x for x in riders_yearly_data if x["financial year"] == "2020-21"]
+
 # @params local_data: dict
 # @params area: string
 # @params area: region
@@ -9,10 +15,10 @@ import json
 def init_data(local_data, area, region, city="", zone=""):
 	local_data[area] = dict()
 	if zone != "":
-		local_data[area]["Zone"] = zone
+		local_data[area]["zone"] = zone
 	if city != "":
-		local_data[area]["City"] = city
-	local_data[area]["Region"] = region
+		local_data[area]["city"] = city
+	local_data[area]["region"] = region
 	local_data[area]["Riders"] = set()
 	local_data[area]["Invoices"] = 0
 	local_data[area]["Shifts"] = 0
@@ -36,7 +42,7 @@ def increment_data(local_data, area, invoice):
 	local_data[area]["Shifts < min wage"] += invoice["Shifts < min wage"]
 
 # @params local_data: dict
-def analyse_data(local_data):
+def analyse_data(local_data, area_type):
 	shifts = local_data["Shifts"]
 	orders = local_data["Orders"]
 	hours = local_data["Hours"]
@@ -46,12 +52,29 @@ def analyse_data(local_data):
 	shifts_below_ten_percentage = round(shifts_below_ten / shifts, 4)
 	shifts_below_min_percentage = round(shifts_below_min / shifts, 4)
 
+	area = local_data[area_type]
+	riders_data = get_data_for_area(area_type, area)
+	riders = len(riders_data)
+	if riders == 0:
+		print(area, area_type)
+		print(local_data)
+		print(riders_data)
+	riders_below_min = len([x for x in riders_data if x["< min"] == True])
+	riders_below_min_percentage = round(riders_below_min / riders, 4)
+
 	local_data["Hours"] = round(hours, 1)
-	local_data["Riders"] = len(local_data["Riders"])
+	local_data["Riders"] = riders
 	local_data["Orders per hour"] = round(orders / hours, 3)
 	local_data["Shifts < £10/h (%)"] = shifts_below_ten_percentage
 	local_data["Shifts < min wage (%)"] = shifts_below_min_percentage
 	local_data["Hourly pay"] = round(pay / hours, 2)
+	local_data["riders < min"] = riders_below_min
+	local_data["riders < min (%)"] = riders_below_min_percentage
+
+# Load riders yearly data
+with open("data/tmp/riders-data-2.json", "r") as infile:
+	riders_yearly_data = json.load(infile)
+	riders_202021_data = get_data_for_financial_year(riders_yearly_data)
 
 zones_data = dict()
 cities_data = dict()
@@ -63,7 +86,11 @@ with open("data/tmp/iwgb-data-4.json", "r") as infile:
 	for invoice in current_fy:
 		zone = invoice["zone"]
 		city = invoice["city"]
-		region = invoice["city"]
+		region = invoice["region"]
+
+		# manual correction for one special case:
+		if zone == "Oldham":
+			zone = "Manchester"
 
 		if zone not in zones_data:
 			init_data(zones_data, zone, region, city, zone)
@@ -81,11 +108,11 @@ with open("data/tmp/iwgb-data-4.json", "r") as infile:
 
 # Analyse the data collected for each zone and city
 for zone in zones_data:
-	analyse_data(zones_data[zone])
+	analyse_data(zones_data[zone], "zone")
 for city in cities_data:
-	analyse_data(cities_data[city])
+	analyse_data(cities_data[city], "city")
 for region in regions_data:
-	analyse_data(regions_data[region])
+	analyse_data(regions_data[region], "region")
 
 # Remove the dictionaries keys and write the data to output files
 print("[*] Writing the geo data to output files")

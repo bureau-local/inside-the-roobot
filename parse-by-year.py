@@ -8,6 +8,13 @@ import json
 # we are giving them some leeway and not penalising them by doing so
 # and the error on your side is likely minimal
 
+def get_data_for_financial_year(riders_yearly_data, year):
+	return [x for x in riders_yearly_data if x["financial year"] == year]
+
+# Load riders yearly data
+with open("data/tmp/riders-data-2.json", "r") as infile:
+	riders_yearly_data = json.load(infile)
+
 yearly_data = dict()
 # Go through each invoice and shift
 with open("data/tmp/iwgb-data-4.json", "r") as infile:
@@ -29,7 +36,6 @@ with open("data/tmp/iwgb-data-4.json", "r") as infile:
 		if financial_year not in yearly_data:
 			yearly_data[financial_year] = dict()
 			yearly_data[financial_year]["financial year"] = financial_year
-			yearly_data[financial_year]["drivers"] = set()
 			yearly_data[financial_year]["shifts"] = 0
 			yearly_data[financial_year]["orders"] = 0
 			yearly_data[financial_year]["hours"] = 0
@@ -38,7 +44,6 @@ with open("data/tmp/iwgb-data-4.json", "r") as infile:
 			yearly_data[financial_year]["shifts < ten"] = 0
 			yearly_data[financial_year]["shifts < min"] = 0
 
-		yearly_data[financial_year]["drivers"].add(rider_id)
 		yearly_data[financial_year]["shifts"] += invoice["Number of shifts"]
 		yearly_data[financial_year]["orders"] += invoice["Total orders"]
 		yearly_data[financial_year]["hours"] += invoice["Hours"]
@@ -47,11 +52,8 @@ with open("data/tmp/iwgb-data-4.json", "r") as infile:
 		yearly_data[financial_year]["shifts < ten"] += shifts_below_ten
 		yearly_data[financial_year]["shifts < min"] += shifts_below_min
 
-		# break
-
 # Analyse the data collected by year
 for year in yearly_data:
-	drivers = yearly_data[year]["drivers"]
 	shifts = yearly_data[year]["shifts"]
 	shifts_below_ten = yearly_data[year]["shifts < ten"] 
 	shifts_below_min = yearly_data[year]["shifts < min"] 
@@ -59,6 +61,11 @@ for year in yearly_data:
 	hours = yearly_data[year]["hours"]
 	pay = yearly_data[year]["pay"]
 	basic_pay = yearly_data[year]["basic pay"]
+
+	riders_data = get_data_for_financial_year(riders_yearly_data, year)
+	riders = len(riders_data)
+	riders_below_min = len([x for x in riders_data if x["< min"] == True])
+	riders_below_min_percentage = round(riders_below_min / riders, 4)
 
 	if hours != 0:
 		hourly_pay = round(pay / hours, 2)
@@ -77,7 +84,7 @@ for year in yearly_data:
 		shifts_below_min_percentage = "-"
 
 	yearly_data[year]["hours"] = round(hours, 1)
-	yearly_data[year]["drivers"] = len(drivers)
+	yearly_data[year]["riders"] = riders
 	yearly_data[year]["pay"] = round(pay, 2)
 	yearly_data[year]["basic pay"] = round(basic_pay, 2)
 	yearly_data[year]["hourly pay"] = hourly_pay
@@ -85,6 +92,8 @@ for year in yearly_data:
 	yearly_data[year]["orders per hour"] = orders_per_hour
 	yearly_data[year]["shifts < ten (%)"] = shifts_below_ten_percentage
 	yearly_data[year]["shifts < min (%)"] = shifts_below_min_percentage
+	yearly_data[year]["riders < min"] = riders_below_min
+	yearly_data[year]["riders < min (%)"] = riders_below_min_percentage
 
 # Remove the dictionary keys and write the yearly data to output file
 print("[*] Writing the yearly data to output file")
